@@ -141,6 +141,69 @@ public class ReportDAO {
 	}
 
 	/**
+	 * Revenue of a particular FLight
+	 * 
+	 * @param fid
+	 * @return
+	 */
+	public static Report getFlightRevenue(int fid) {
+		Report r = new Report();
+
+		String query = "Select sum(totalFare) FROM ( SELECT distinct r.Id as rid  FROM legs l, reservation r "
+				+ "where l.ResrId = r.Id  And l.FlightId = ?  GROUP BY r.id ) as T,  reservation r "
+				+ "where T.rid = r.Id";
+		try {
+			currentCon = ConnectionManager.getConnection();
+			ps = currentCon.prepareStatement(query);
+			ps.setInt(1, fid);
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				r.setFare(rs.getInt(1));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeSockets();
+		}
+
+		return r;
+	}
+
+	/**
+	 * Revenue of a particular Customer
+	 * 
+	 * @param fid
+	 * @return
+	 */
+	public static Report getCustomerRevenue(int fid) {
+		Report r = new Report();
+
+		String query = "select sum(r.totalFare) from reservation r where r.PassengerId = ?";
+		try {
+			currentCon = ConnectionManager.getConnection();
+			ps = currentCon.prepareStatement(query);
+			ps.setInt(1, fid);
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				r.setFare(rs.getInt(1));
+			}
+
+		} catch (
+
+		Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeSockets();
+		}
+
+		return r;
+	}
+
+	/**
 	 * Close any Socket whihc is Open
 	 */
 	private static void closeSockets() {

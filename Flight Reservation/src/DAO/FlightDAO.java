@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import Connection.ConnectionManager;
 import Model.Airport;
@@ -343,8 +344,13 @@ public class FlightDAO {
 				count = (rs2.getInt(3) - count) + 1;
 
 				s.setSeats(tripDetail.getSeats());
-				s.setTotalFare(rs2.getInt(6) * s.getSeats());
 
+				// Discount Featuring based on advance booking
+				Timestamp now = new Timestamp(System.currentTimeMillis());
+				int diffInDays = (int) ((s.getDeptTime().getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+				s.setTotalFare(tripDetail.getSeats() * rs2.getInt(6));
+
+				s.setTotalFare(s.getTotalFare() - (s.getTotalFare() / 100) * diffInDays);
 				s.setStops(count);
 
 				stops.add(s);
@@ -411,11 +417,15 @@ public class FlightDAO {
 
 				// Add a new Reservation with Airport and Passenger Data
 				ps = currentCon.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-				ps.setInt(1, td.getTotalFare());
+				ps.setInt(1, td.getTotalFare() / td.getSeats());
 				ps.setString(2, "Chips");
 				ps.setInt(3, pid);
 				ps.setString(4, "Economy");
-				String s = ((int) (Math.random() * 30)) + "A";
+
+				Random r = new Random();
+				char c = (char) (r.nextInt(26) + 'A');
+				int n = (int) (Math.random() * 50) + 1;
+				String s = Integer.toString(n) + c;
 				ps.setString(5, s);
 				ps.setString(6, dept);
 				ps.setString(7, arri);
